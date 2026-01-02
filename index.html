@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ctcHealth Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script crossorigin="anonymous" src="https://cdn.botframework.com/botframework-webchat/latest/webchat.js"></script>
+  <style>
+    :root {
+      --surface: #ffffff;
+      --surface-secondary: #f9f9f9;
+      --surface-tertiary: #f3f3f3;
+      --border: #e5e5e5;
+      --border-strong: #d1d1d1;
+      --text-primary: #1a1a1a;
+      --text-secondary: #616161;
+      --text-tertiary: #8a8a8a;
+      --brand: #7c3aed;
+      --brand-hover: #6d28d9;
+      --brand-light: #ede9fe;
+      --user-bubble: #7c3aed;
+      --bot-bubble: #ffffff;
+      --success: #10b981;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+      --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    
+    body {
+      font-family: var(--font);
+      background: linear-gradient(145deg, #f8f7ff 0%, #f0f4ff 50%, #faf5ff 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .chat-wrapper {
+      width: 100%;
+      max-width: 440px;
+      height: 95vh;
+      max-height: 720px;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    /* Header */
+    .chat-header {
+      padding: 16px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .header-avatar {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-full);
+      background: linear-gradient(135deg, var(--brand) 0%, #a855f7 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .header-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .header-avatar::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 12px;
+      height: 12px;
+      background: var(--success);
+      border: 2px solid var(--surface);
+      border-radius: var(--radius-full);
+    }
+
+    .header-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .header-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .header-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      background: var(--surface-tertiary);
+      color: var(--text-primary);
+    }
+
+    .icon-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* WebChat Container */
+    #webchat {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ===== FLUENT COPILOT WEBCHAT STYLES ===== */
+    
+    .webchat__basic-transcript {
+      background: var(--surface-secondary) !important;
+      padding: 20px 16px 12px !important;
+    }
+
+    .webchat__stacked-layout {
+      padding: 4px 0 !important;
+    }
+
+    /* Bot bubbles */
+    .webchat__bubble:not(.webchat__bubble--from-user) .webchat__bubble__content {
+      background: var(--bot-bubble) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 4px !important;
+      color: var(--text-primary) !important;
+      padding: 12px 16px !important;
+      font-size: 14px !important;
+      line-height: 1.55 !important;
+      box-shadow: var(--shadow-sm) !important;
+      max-width: 85% !important;
+    }
+
+    /* User bubbles */
+    .webchat__bubble--from-user .webchat__bubble__content {
+      background: var(--user-bubble) !important;
+      border: none !important;
+      border-radius: var(--radius-md) var(--radius-md) 4px var(--radius-md) !important;
+      color: #ffffff !important;
+      padding: 12px 16px !important;
+      font-size: 14px !important;
+      line-height: 1.55 !important;
+      box-shadow: var(--shadow-md) !important;
+      max-width: 85% !important;
+    }
+
+    .webchat__bubble--from-user .webchat__bubble__content * {
+      color: #ffffff !important;
+    }
+
+    /* Links */
+    .webchat__bubble__content a {
+      color: var(--brand) !important;
+      text-decoration: none !important;
+    }
+
+    .webchat__bubble__content a:hover {
+      text-decoration: underline !important;
+    }
+
+    .webchat__bubble--from-user .webchat__bubble__content a {
+      color: #ffffff !important;
+      text-decoration: underline !important;
+    }
+
+    /* Avatars */
+    .webchat__avatar {
+      width: 28px !important;
+      height: 28px !important;
+      border-radius: var(--radius-full) !important;
+      overflow: hidden !important;
+      box-shadow: var(--shadow-sm) !important;
+    }
+
+    /* Send box */
+    .webchat__send-box {
+      background: var(--surface) !important;
+      border-top: 1px solid var(--border) !important;
+      padding: 16px !important;
+    }
+
+    .webchat__send-box-text-box {
+      background: var(--surface-secondary) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius-full) !important;
+      padding: 12px 18px !important;
+      transition: all 0.2s ease !important;
+    }
+
+    .webchat__send-box-text-box:hover {
+      border-color: var(--border-strong) !important;
+    }
+
+    .webchat__send-box-text-box:focus-within {
+      border-color: var(--brand) !important;
+      box-shadow: 0 0 0 3px var(--brand-light) !important;
+      background: var(--surface) !important;
+    }
+
+    .webchat__send-box-text-box input,
+    .webchat__send-box-text-box textarea {
+      color: var(--text-primary) !important;
+      font-size: 14px !important;
+      background: transparent !important;
+    }
+
+    .webchat__send-box-text-box input::placeholder,
+    .webchat__send-box-text-box textarea::placeholder {
+      color: var(--text-tertiary) !important;
+    }
+
+    /* Send button */
+    .webchat__send-box button.webchat__icon-button {
+      width: 38px !important;
+      height: 38px !important;
+      border-radius: var(--radius-full) !important;
+      background: var(--brand) !important;
+      border: none !important;
+      margin-left: 10px !important;
+      transition: all 0.2s ease !important;
+      box-shadow: var(--shadow-sm) !important;
+    }
+
+    .webchat__send-box button.webchat__icon-button:hover:not(:disabled) {
+      background: var(--brand-hover) !important;
+      transform: scale(1.05) !important;
+      box-shadow: var(--shadow-md) !important;
+    }
+
+    .webchat__send-box button.webchat__icon-button:active:not(:disabled) {
+      transform: scale(0.98) !important;
+    }
+
+    .webchat__send-box button.webchat__icon-button svg {
+      fill: #ffffff !important;
+    }
+
+    .webchat__send-box button.webchat__icon-button:disabled {
+      background: var(--surface-tertiary) !important;
+      box-shadow: none !important;
+    }
+
+    .webchat__send-box button.webchat__icon-button:disabled svg {
+      fill: var(--text-tertiary) !important;
+    }
+
+    /* Upload button - hide */
+    .webchat__upload-button {
+      display: none !important;
+    }
+
+    /* Suggested actions */
+    .webchat__suggested-actions {
+      background: transparent !important;
+      padding: 8px 16px 4px !important;
+    }
+
+    .webchat__suggested-actions__button {
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius-full) !important;
+      color: var(--brand) !important;
+      padding: 8px 16px !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      transition: all 0.2s ease !important;
+      box-shadow: var(--shadow-sm) !important;
+    }
+
+    .webchat__suggested-actions__button:hover {
+      background: var(--brand-light) !important;
+      border-color: var(--brand) !important;
+    }
+
+    /* Typing indicator */
+    .webchat__typing-indicator__three-dots span {
+      background: var(--brand) !important;
+    }
+
+    /* Timestamps */
+    .webchat__row__timestamp {
+      color: var(--text-tertiary) !important;
+      font-size: 11px !important;
+    }
+
+    /* Scrollbar */
+    #webchat ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #webchat ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #webchat ::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: var(--radius-full);
+    }
+
+    #webchat ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-tertiary);
+    }
+
+    /* Loading overlay */
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 100;
+    }
+
+    .loading-overlay.hidden { display: none; }
+
+    .loading-spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--brand);
+      border-radius: var(--radius-full);
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* Powered by footer */
+    .powered-by {
+      padding: 10px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-tertiary);
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+    }
+
+    .powered-by a {
+      color: var(--brand);
+      text-decoration: none;
+    }
+
+    /* Mobile */
+    @media (max-width: 480px) {
+      body { padding: 0; }
+      .chat-wrapper {
+        max-width: 100%;
+        height: 100vh;
+        max-height: none;
+        border-radius: 0;
+        border: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-wrapper">
+    <header class="chat-header">
+      <div class="header-avatar">
+        <img src="https://i.imgur.com/v0pQRJe.jpeg" alt="" onerror="this.parentElement.innerHTML='<svg viewBox=\'0 0 24 24\' fill=\'white\' width=\'28\' height=\'28\'><path d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z\'/></svg>'" />
+      </div>
+      <div class="header-content">
+        <div class="header-title">ctcHealth Assistant</div>
+        <div class="header-subtitle" id="statusArea">
+          <span id="statusText">Ready to help</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" onclick="location.reload()" title="Refresh">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div id="webchat">
+      <div class="loading-overlay" id="loader">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Connecting...</div>
+      </div>
+    </div>
+
+    <div class="powered-by">
+      Powered by <a href="#">ctcHealth</a>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const CONFIG = {
+        tokenEndpointURL: "https://Defaultb62a9626ac0e43b7aee7c0d0a11492.90.environment.api.powerplatform.com/powervirtualagents/botsbyschema/crfad_facialPalsyCoPilot/directline/token?api-version=2022-03-01-preview",
+        botAvatarImage: "https://i.imgur.com/v0pQRJe.jpeg",
+        userAvatarImage: "https://i.imgur.com/Vd2rwWx.jpeg"
+      };
+
+      const loader = document.getElementById('loader');
+      const statusText = document.getElementById('statusText');
+
+      const styleOptions = {
+        accent: '#7c3aed',
+        backgroundColor: '#f9f9f9',
+        botAvatarImage: CONFIG.botAvatarImage,
+        botAvatarInitials: '',
+        botAvatarBackgroundColor: '#7c3aed',
+        userAvatarImage: CONFIG.userAvatarImage,
+        userAvatarInitials: '',
+        userAvatarBackgroundColor: '#7c3aed',
+        avatarBorderRadius: '50%',
+        avatarSize: 28,
+        showAvatarInGroup: 'status',
+        bubbleBackground: '#ffffff',
+        bubbleBorderColor: '#e5e5e5',
+        bubbleBorderRadius: 12,
+        bubbleFromUserBackground: '#7c3aed',
+        bubbleFromUserBorderRadius: 12,
+        bubbleFromUserTextColor: '#ffffff',
+        bubbleTextColor: '#1a1a1a',
+        bubbleNubSize: 0,
+        bubbleFromUserNubSize: 0,
+        bubbleMaxWidth: 320,
+        sendBoxBackground: '#ffffff',
+        sendBoxBorderTop: '1px solid #e5e5e5',
+        sendBoxTextColor: '#1a1a1a',
+        sendBoxPlaceholderColor: '#8a8a8a',
+        sendBoxButtonColor: '#7c3aed',
+        sendBoxButtonColorOnHover: '#6d28d9',
+        sendBoxHeight: 50,
+        hideUploadButton: true,
+        suggestedActionBackground: '#ffffff',
+        suggestedActionBorderColor: '#e5e5e5',
+        suggestedActionBorderRadius: 9999,
+        suggestedActionTextColor: '#7c3aed',
+        primaryFont: "'Segoe UI', -apple-system, sans-serif",
+        timestampColor: '#8a8a8a'
+      };
+
+      async function init() {
+        try {
+          const url = CONFIG.tokenEndpointURL;
+          const apiVersion = new URL(url).searchParams.get("api-version");
+
+          const [regional, tokenRes] = await Promise.all([
+            fetch(new URL(`/powervirtualagents/regionalchannelsettings?api-version=${apiVersion}`, url)).then(r => r.json()),
+            fetch(url).then(r => r.json())
+          ]);
+
+          const directLine = window.WebChat.createDirectLine({
+            domain: new URL('v3/directline', regional.channelUrlsById.directline).toString(),
+            token: tokenRes.token
+          });
+
+          directLine.connectionStatus$.subscribe(s => {
+            if (s === 2) {
+              loader.classList.add('hidden');
+              statusText.textContent = 'Online';
+              directLine.postActivity({
+                type: 'event',
+                name: 'startConversation',
+                locale: 'en',
+                localTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+              }).subscribe();
+            } else if (s === 4) {
+              statusText.textContent = 'Connection failed';
+            }
+          });
+
+          window.WebChat.renderWebChat({ directLine, styleOptions }, document.getElementById('webchat'));
+        } catch (e) {
+          console.error(e);
+          loader.querySelector('.loading-text').textContent = 'Failed to connect';
+          statusText.textContent = 'Offline';
+        }
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
